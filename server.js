@@ -2,7 +2,9 @@ import "babel-polyfill";
 import Koa from 'koa'
 import koaRouter from 'koa-router'
 import request from 'request'
-// import './auth'
+import _ from 'lodash'
+import cron from 'cron'
+// CronJob
 const server = new Koa();
 const router = koaRouter();
 const onerror = err => {
@@ -16,10 +18,7 @@ server.use(bodyParser())
 server.use(async(ctx, next) => {
   console.log(ctx.url)
   await next()
-  // if (this.method!='OPTIONS') console.log(this.session, this.request.body)
 })
-
-// const db = JSON.parse(readFileSync('data/db.json').toString())
 
 const parseSetCookie = input => {
   if (!input) return ''
@@ -42,42 +41,61 @@ const SWRequest = (options, redirectCount = 0) => new Promise((resolve, reject) 
     request.post(Object.assign(defaultRequestOptions, options), (err, res, body) => { if (err) reject(err); else resolve([res, body]) })
   })
   let [postRes, postBody] = post
+  let postCookie = parseSetCookie(postRes.headers['set-cookie'])
   if (postRes.statusCode === 302) {
     let redirect = await new Promise((resolve, reject) => {
       let [url, setCookie] = [postRes.headers.location, postRes.headers['set-cookie']]
       request.get(Object.assign(defaultRequestOptions, {
         url: url,
-        headers: { Cookie: parseSetCookie(setCookie) }
+        headers: { Cookie: postCookie }
       }), (err, res, body) => { if (err) reject(err); else resolve([res, body]) })
     })
     let [redirectRes, redirectBody] = redirect
     let redirectCookie = parseSetCookie(redirectRes.headers['set-cookie'])
     resolve({ response: redirectRes, body: redirectBody, cookie: redirectCookie })
   } else {
-    console.log(postRes.statusCode)
-    if (++redirectCount >= 2) {
-      return reject('Too many redirects for ' + JSON.stringify(options))
-    } else {
-      try {
-        return await SWRequest(options, redirectCount)
-      } catch (err) {
-        reject(err)
-      }
-    }
+    reject({ err: 'Did not receive a status code 302', response: postRes, body: postBody, cookie: postCookie })
   }
 })())
 
-  router
-  .get('/', async(ctx, next) => {
-  try {
-    const submitForm = await SWRequest({
-      url: 'https://www.southwest.com/flight/retrieveCheckinDoc.html',
-      form: {
-        confirmationNumber: 'HSHQ3O',
-        firstName: 'ANTOINE',
-        lastName: 'PHAM'
+const inputOptions = {
+  confirmationNumber: 'H8WQPC',
+  firstName: 'KRISTIE',
+  lastName: 'DANG'
+}
+const inputOptions2 = {
+  confirmationNumber: 'RSA2TA',
+  firstName: 'ANTOINE',
+  lastName: 'PHAM'
+}
+
+const checkInFull = async(inputOptions) => {
+  const submitFormOptions = {
+    url: 'https://www.southwest.com/flight/retrieveCheckinDoc.html',
+    form: inputOptions
+  }
+  let submitForm = await (async function recursiveRetry(retryCount = 0) {
+    try {
+      let response = await SWRequest(submitFormOptions)
+      return response
+    } catch (err) {
+      console.log(`Status Code: ${err.response.statusCode}`)
+      if (++retryCount >= 10) {
+        console.log('Too many redirects for ' + JSON.stringify(submitFormOptions))
+        console.log(_.isArray(err.body.match(/This form has the following errors/g)))
+        err.err = true
+        return err
+      } else {
+        console.log('Retrying')
+        return recursiveRetry(retryCount)
       }
-    })
+    }
+  })()
+  if (submitForm.err) {
+    submitFormOptions.err = 'Something happened with submit form!'
+    return submitForm.body
+  }
+  try {
     const checkIn = await SWRequest({
       url: 'https://www.southwest.com/flight/selectPrintDocument.html',
       form: {
@@ -88,45 +106,49 @@ const SWRequest = (options, redirectCount = 0) => new Promise((resolve, reject) 
         Cookie: submitForm.cookie
       }
     })
-    const sendToPhoneOptions = SWRequest({
-      url: 'https://www.southwest.com/flight/selectCheckinDocDelivery.html',
-      form: {
-        selectedOption: 'optionText',
-        phoneArea: '408',
-        phonePrefix: '391',
-        phoneNumber: '3799',
-        book_now: ''
-      },
-      headers: {
-        Cookie: checkIn.cookie
-      }
-    })
-    const sendToEMailOptions = SWRequest({
-      url: 'https://www.southwest.com/flight/selectCheckinDocDelivery.html',
-      form: {
-        selectedOption: 'optionEmail',
-        emailAddress: 'its@phamap.net',
-        book_now: ''
-      },
-      headers: {
-        Cookie: checkIn.cookie
-      }
-    })
-    const [sendToPhone, sendToEMail] = await Promise.all([
-      SWRequest(sendToPhoneOptions),
-      SWRequest(sendToEMailOptions)
-    ])
+    // const sendToPhoneOptions = SWRequest({
+    //   url: 'https://www.southwest.com/flight/selectCheckinDocDelivery.html',
+    //   form: {
+    //     selectedOption: 'optionText',
+    //     phoneArea: '408',
+    //     phonePrefix: '391',
+    //     phoneNumber: '3799',
+    //     book_now: ''
+    //   },
+    //   headers: {
+    //     Cookie: checkIn.cookie
+    //   }
+    // })
+    // const sendToEMailOptions = SWRequest({
+    //   url: 'https://www.southwest.com/flight/selectCheckinDocDelivery.html',
+    //   form: {
+    //     selectedOption: 'optionEmail',
+    //     emailAddress: 'its@phamap.net',
+    //     book_now: ''
+    //   },
+    //   headers: {
+    //     Cookie: submitForm.cookie
+    //   }
+    // })
+    // const [sendToPhone, sendToEMail] = await Promise.all([
+    //   SWRequest(sendToPhoneOptions),
+    //   SWRequest(sendToEMailOptions)
+    // ])
     let response = checkIn.body
-    ctx.body = response
+    return response
+    console.log('here!!')
     await next()
   } catch (err) {
-    ctx.body = err
+    return err
     console.log(err)
   }
+}
+  router.get('/', async(ctx, next) => {
+    ctx.body = await checkInFull(inputOptions2)
 })
   .get('/listAll', ctx => {
-    ctx.body = 'This call should list all stuff'
-  })
+  ctx.body = 'This call should list all stuff'
+})
   .post('/flight', async(ctx, next) => {
     await next()
     ctx.body = ctx.request
@@ -138,55 +160,7 @@ const SWRequest = (options, redirectCount = 0) => new Promise((resolve, reject) 
 
   })
 
-/*router.get('/', async function(ctx) {
-  this.body = 'Hello Wo rld'
-})
-
-router.post('/login', async function(ctx) {
-  let body = this.request.body
-  if (body.username == 'tillster' && body.password == 'test') {
-    this.body = { name: 'Antoine Pham', result: true }
-    this.session.username = 'tillster'
-    this.session.name = 'Antoine Pham'
-    this.session.type = 'updateAdmin'
-    this.session.expire = Date.now() + 86400000
-  }
-  else this.body = { result: false }
-})
-
-router.post('/api/1/updates/check', async function(ctx) {
-  let release = this.request.body['version'];
-  let response
-  if (release in db) response = db[release]
-  else response = db['NA']
-  this.body = {
-    request: this.request.body,
-    response: response
-  }
-  this.request.body.url = this.url
-  console.log(this.request.body)
-});
-
-router.post('/api/1/updates/log', async function(ctx) {
-  this.body = {
-    request: this.request.body,
-    response: {
-      result: true
-    }
-  }
-  this.request.body.url = this.url
-  console.log(this.request.body)
-});
-
-router.get('/api/1/updates/sessiontest', async function(ctx) {
-  this.session.test = this.session.test + 1 || 1
-  this.body = {
-    response: this.session.test
-  }
-});*/
-
 server
-// .use(cors())
   .use(router.routes())
 
 module.exports = server

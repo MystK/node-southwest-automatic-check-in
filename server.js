@@ -3,7 +3,8 @@ import Koa from 'koa'
 import koaRouter from 'koa-router'
 import request from 'request'
 import _ from 'lodash'
-import cron from 'cron'
+import { CronJob } from 'cron'
+var jobs = []
 // CronJob
 const server = new Koa();
 const router = koaRouter();
@@ -119,24 +120,23 @@ const checkInFull = async(inputOptions) => {
     //     Cookie: checkIn.cookie
     //   }
     // })
-    // const sendToEMailOptions = SWRequest({
-    //   url: 'https://www.southwest.com/flight/selectCheckinDocDelivery.html',
-    //   form: {
-    //     selectedOption: 'optionEmail',
-    //     emailAddress: 'its@phamap.net',
-    //     book_now: ''
-    //   },
-    //   headers: {
-    //     Cookie: submitForm.cookie
-    //   }
-    // })
+    const sendToEMailOptions = await SWRequest({
+      url: 'https://www.southwest.com/flight/selectCheckinDocDelivery.html',
+      form: {
+        selectedOption: 'optionEmail',
+        emailAddress: 'its@phamap.net',
+        book_now: ''
+      },
+      headers: {
+        Cookie: submitForm.cookie
+      }
+    })
     // const [sendToPhone, sendToEMail] = await Promise.all([
     //   SWRequest(sendToPhoneOptions),
     //   SWRequest(sendToEMailOptions)
     // ])
     let response = checkIn.body
     return response
-    console.log('here!!')
     await next()
   } catch (err) {
     return err
@@ -147,17 +147,63 @@ const checkInFull = async(inputOptions) => {
     ctx.body = await checkInFull(inputOptions2)
 })
   .get('/listAll', ctx => {
-  ctx.body = 'This call should list all stuff'
-})
+    let body = {}
+    for (let index in jobs) {
+      body[index] = jobs[index].params || jobs[index]
+    }
+    ctx.body = body
+  })
   .post('/flight', async(ctx, next) => {
     await next()
     ctx.body = ctx.request
   })
-  .put('/add', ctx => {
-
+  .put('/add', async ctx => {
+    try {
+      var count = 0
+      let body = ctx.request.body
+      const time = body.time = ' *'
+      delete body.time
+      // Seconds: 0-59
+      // Minutes: 0-59
+      // Hours: 0-23
+      // Day of Month: 1-31
+      // Months: 0-11
+      // Day of Week: 0-6
+      // if (_.isArray(time.match(/\*/g))) throw ('Cannot use * in time key. Check in should only be once.')
+      const params = {
+        time: time,
+        params: body,
+        id: jobs.length
+      }
+      jobs.push({
+        params,
+        CronJob: new CronJob({
+          cronTime: time,
+          onTick: async f => {
+            console.log('Trying to check in!')
+            let response = await checkInFull(body)
+            console.log(time)
+            console.log(body)
+            console.log('Looks like check in script was ran')
+          },
+          start: true,
+          onComplete: f => {
+            console.log('stopped')
+          }
+        })
+      })
+      ctx.body = _.assign({}, params, {info: 'Successful!'})
+    } catch (err) {
+      ctx.body = err
+    }
   })
   .delete('/remove', ctx => {
-
+    const body = ctx.request.body
+    const index = body.index
+    const job = jobs[index]
+    if ('CronJob' in job) job.CronJob.stop()
+    jobs[index] = 'Removed'
+    ctx.body = `checkin #${index} removed`
   })
 
 server

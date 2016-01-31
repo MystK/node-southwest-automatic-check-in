@@ -187,6 +187,7 @@ const checkInFull = async(inputOptions) => {
             console.log('Looks like check in script was ran')
           },
           start: true,
+          timeZone: 'America/Los_Angeles',
           onComplete: f => {
             console.log('stopped')
           }

@@ -49,8 +49,13 @@ const SWRequest = options => new Promise((resolve, reject) => (async f => {
       let [url, setCookie] = [postRes.headers.location, postRes.headers['set-cookie']]
       request.get(_.assign(dRO, {
         url: url,
-        headers: { Cookie: postCookie }
-      }), (err, res, body) => { if (err) reject(err); else resolve([res, body]) })
+        headers: {
+          Cookie: postCookie
+        }
+      }), (err, res, body) => {
+        if (err) reject(err)
+        else resolve([res, body])
+      })
     })
     let [redirectRes, redirectBody] = redirect
     let redirectCookie = parseSetCookie(redirectRes.headers['set-cookie'])

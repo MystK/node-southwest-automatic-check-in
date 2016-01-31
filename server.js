@@ -20,7 +20,7 @@ server
     await next()
   })
 
-const SWRequest = (options, redirectCount = 0) => new Promise((resolve, reject) => (async f => {
+const SWRequest = options => new Promise((resolve, reject) => (async f => {
   const dRO = { // defaultRequestOptions
     headers: {
       'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2605.0 Safari/537.36',

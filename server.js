@@ -65,7 +65,7 @@ const checkInFull = async(inputOptions) => {
     url: 'https://www.southwest.com/flight/retrieveCheckinDoc.html',
     form: inputOptions
   }
-  let submitForm = await (async function recursiveRetry(retryCount = 0) {
+  let submitForm = await(async function recursiveRetry(retryCount = 0) {
     try {
       let response = await SWRequest(submitFormOptions)
       return response
@@ -129,8 +129,8 @@ const checkInFull = async(inputOptions) => {
     console.log(err)
   }
 }
-  router.get('/', async(ctx, next) => {
-    ctx.body = await checkInFull(inputOptions2)
+router.get('/', async(ctx, next) => {
+  ctx.body = await checkInFull(inputOptions2)
 })
   .get('/listAll', ctx => {
     let body = {}
@@ -179,7 +179,7 @@ const checkInFull = async(inputOptions) => {
           }
         })
       })
-      ctx.body = _.assign({}, params, {info: 'Successful!'})
+      ctx.body = _.assign({}, params, { info: 'Successful!' })
     } catch (err) {
       ctx.body = err
     }

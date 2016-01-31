@@ -161,7 +161,7 @@ const checkInFull = async(inputOptions) => {
     try {
       var count = 0
       let body = ctx.request.body
-      const time = body.time = ' *'
+      const time = body.time + ' *'
       delete body.time
       // Seconds: 0-59
       // Minutes: 0-59

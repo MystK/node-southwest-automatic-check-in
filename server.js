@@ -129,9 +129,10 @@ const checkInFull = async(inputOptions) => {
     console.log(err)
   }
 }
-router.get('/', async(ctx, next) => {
-  ctx.body = await checkInFull(inputOptions2)
-})
+router
+  .get('/', async(ctx, next) => {
+    ctx.body = await checkInFull(inputOptions2)
+  })
   .get('/listAll', ctx => {
     let body = {}
     for (let index in jobs) {

@@ -59,7 +59,11 @@ const SWRequest = options => new Promise((resolve, reject) => (async f => {
     })
     let [redirectRes, redirectBody] = redirect
     let redirectCookie = parseSetCookie(redirectRes.headers['set-cookie'])
-    resolve({ response: redirectRes, body: redirectBody, cookie: redirectCookie })
+    resolve({
+      response: redirectRes,
+      body: redirectBody,
+      cookie: redirectCookie
+    })
   } else reject({ err: 'Did not receive a status code 302', response: postRes, body: postBody, cookie: postCookie })
 })())
 

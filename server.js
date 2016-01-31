@@ -77,15 +77,21 @@ const checkInFull = async(inputOptions) => {
       let response = await SWRequest(submitFormOptions)
       return response
     } catch (err) {
-      console.log(`Status Code: ${err.response.statusCode}`)
-      if (++retryCount >= 10) {
-        console.log('Too many redirects for ' + JSON.stringify(submitFormOptions))
-        console.log(_.isArray(err.body.match(/This form has the following errors/g)))
+      const body = err.body
+      if (_.isArray(body.match(/This form has the following errors/g))) {
+        const errors = body.match(/<ul id="errors"[^]+<\/ul>/)[0].split('<li>')
+        console.log(`Status Code: ${err.response.statusCode}`)
+        if (++retryCount >= 10) {
+          console.log('Too many redirects for ' + JSON.stringify(submitFormOptions))
+          err.err = true
+          return err
+        } else {
+          console.log('Retrying')
+          return recursiveRetry(retryCount)
+        }
+      } else {
         err.err = true
         return err
-      } else {
-        console.log('Retrying')
-        return recursiveRetry(retryCount)
       }
     }
   })()

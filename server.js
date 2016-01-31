@@ -59,17 +59,6 @@ const SWRequest = (options, redirectCount = 0) => new Promise((resolve, reject) 
   }
 })())
 
-const inputOptions = {
-  confirmationNumber: 'H8WQPC',
-  firstName: 'KRISTIE',
-  lastName: 'DANG'
-}
-const inputOptions2 = {
-  confirmationNumber: 'RSA2TA',
-  firstName: 'ANTOINE',
-  lastName: 'PHAM'
-}
-
 const checkInFull = async(inputOptions) => {
   const submitFormOptions = {
     url: 'https://www.southwest.com/flight/retrieveCheckinDoc.html',
@@ -131,10 +120,6 @@ const checkInFull = async(inputOptions) => {
         Cookie: submitForm.cookie
       }
     })
-    // const [sendToPhone, sendToEMail] = await Promise.all([
-    //   SWRequest(sendToPhoneOptions),
-    //   SWRequest(sendToEMailOptions)
-    // ])
     let response = checkIn.body
     return response
     await next()

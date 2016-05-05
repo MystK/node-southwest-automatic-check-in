@@ -161,7 +161,7 @@ router
     try {
       var count = 0
       let body = ctx.request.body
-      const time = body.time + ' *'
+      let time = `55 ${body.time} *`
       delete body.time
       // Seconds: 0-59
       // Minutes: 0-59
@@ -170,6 +170,16 @@ router
       // Months: 0-11
       // Day of Week: 0-6
       // if (_.isArray(time.match(/\*/g))) throw ('Cannot use * in time key. Check in should only be once.')
+      let arrayTime = time.split(' ')
+      console.log(arrayTime)
+      arrayTime[4] = +arrayTime[4] - 1
+      // Seconds: 0-59
+      // Minutes: 0-59
+      // Hours: 0-23
+      // Day of Month: 1-31
+      // Months: 1-12
+      time = arrayTime.join(' ')
+      console.log(time)
       const params = {
         time: time,
         params: body,
@@ -187,7 +197,6 @@ router
             console.log('Looks like check in script was ran')
           },
           start: true,
-          timeZone: 'America/Los_Angeles',
           onComplete: f => {
             console.log('stopped')
           }

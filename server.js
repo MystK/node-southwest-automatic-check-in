@@ -149,7 +149,7 @@ const checkInFull = async(inputOptions) => {
 }
 router
   .get('/', async(ctx, next) => {
-    body.exampleJson = {
+    ctx.exampleJson = {
       "firstName": "Michelle",
       "lastName": "Lam",
       "confirmationNumber": "BX6BEB",
@@ -179,7 +179,7 @@ router
     try {
       var count = 0
       let body = ctx.request.body
-      let time = `55 ${body.time} *`
+      let time = `50 ${body.time} *`
       delete body.time
       // Seconds: 0-59
       // Minutes: 0-59
@@ -190,7 +190,9 @@ router
       // if (_.isArray(time.match(/\*/g))) throw ('Cannot use * in time key. Check in should only be once.')
       let arrayTime = time.split(' ')
       console.log(arrayTime)
-      arrayTime[4] = +arrayTime[4] - 1
+      arrayTime[1] = +arrayTime[1] - 1 // bring back by 1 minute
+      arrayTime[3] = +arrayTime[3] - 1 // bring back by 1 dat
+      arrayTime[4] = +arrayTime[4] - 1 // change the month from 0-11 to 1-12
       // Seconds: 0-59
       // Minutes: 0-59
       // Hours: 0-23

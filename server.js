@@ -100,12 +100,17 @@ const checkInFull = async(inputOptions) => {
     return submitForm.body
   }
   try {
+	const passengerCount = submitForm.body.match(/id="checkinPassengers/g).length
+	const form = {
+      printDocuments: 'Check In'
+    }
+	for (let i = 0; i < passengerCount; ++i) {
+	  form[`checkinPassengers[${i}].selected`] = 'true'
+	}
+	console.log(form)
     const checkIn = await SWRequest({
       url: 'https://www.southwest.com/flight/selectPrintDocument.html',
-      form: {
-        'checkinPassengers[0].selected': 'true',
-        printDocuments: 'Check In'
-      },
+      form,
       headers: {
         Cookie: submitForm.cookie
       }

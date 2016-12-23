@@ -81,7 +81,7 @@ const checkInFull = async(inputOptions) => {
       if (_.isArray(body.match(/This form has the following errors/g))) {
         const errors = body.match(/<ul id="errors"[^]+<\/ul>/)[0].split('<li>')
         console.log(`Status Code: ${err.response.statusCode}`)
-        if (++retryCount >= 100) {
+        if (++retryCount >= 20) {
           console.log('Too many redirects for ' + JSON.stringify(submitFormOptions))
           err.err = true
           return err

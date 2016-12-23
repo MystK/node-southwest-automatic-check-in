@@ -149,12 +149,14 @@ const checkInFull = async(inputOptions) => {
 }
 router
   .get('/', async(ctx, next) => {
-    ctx.exampleJson = {
-      "firstName": "Michelle",
-      "lastName": "Lam",
-      "confirmationNumber": "BX6BEB",
-      "time": "35 21 16 12",
-      "timeComment": "/*Minute*/ /*Hour in 24 hour format*/ /*Flight Day*/ /*Flight Month*/"
+    ctx.body = {
+      exampleJson: {
+        "firstName": "Michelle",
+        "lastName": "Lam",
+        "confirmationNumber": "BX6BEB",
+        "time": "35 21 16 12",
+        "timeComment": "/*Minute*/ /*Hour in 24 hour format*/ /*Flight Day*/ /*Flight Month*/"
+      }
     }
   })
   .get('/listAll', ctx => {

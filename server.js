@@ -149,12 +149,25 @@ const checkInFull = async(inputOptions) => {
 }
 router
   .get('/', async(ctx, next) => {
-    ctx.body = await checkInFull(inputOptions2)
+    body.exampleJson = {
+      "firstName": "Michelle",
+      "lastName": "Lam",
+      "confirmationNumber": "BX6BEB",
+      "time": "35 21 16 12",
+      "timeComment": "/*Minute*/ /*Hour in 24 hour format*/ /*Flight Day*/ /*Flight Month*/"
+    }
   })
   .get('/listAll', ctx => {
     let body = {}
     for (let index in jobs) {
       body[index] = jobs[index].params || jobs[index]
+    }
+    body.exampleJson = {
+      "firstName": "Michelle",
+      "lastName": "Lam",
+      "confirmationNumber": "BX6BEB",
+      "time": "35 21 16 12",
+      "timeComment": "/*Minute*/ /*Hour in 24 hour format*/ /*Flight Day*/ /*Flight Month*/"
     }
     ctx.body = body
   })

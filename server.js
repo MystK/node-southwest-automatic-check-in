@@ -1,12 +1,12 @@
-import "babel-polyfill";
-import Koa from 'koa'
-import koaRouter from 'koa-router'
-import request from 'request'
-import _ from 'lodash'
-import { CronJob } from 'cron'
-import cors from 'kcors'
-import bodyParser from 'koa-bodyparser'
-const southwestCheckIn = require('./modules.southwest-driver')
+require("babel-polyfill");
+const Koa = require('koa')
+const koaRouter = require('koa-router')
+const request = require('request')
+const _ = require('lodash')
+const { CronJob } = require('cron')
+const cors = require('kcors')
+const bodyParser = require('koa-bodyparser')
+const southwestCheckIn = require('./modules/southwest-driver')
 var jobs = []
 const server = new Koa();
 const router = koaRouter();
@@ -68,7 +68,7 @@ router
       console.log(arrayTime)
       arrayTime[1] = +arrayTime[1] - 1 // bring back by 1 minute
       arrayTime[3] = +arrayTime[3] - 1 // bring back by 1 dat
-      arrayTime[4] = +arrayTime[4] - 1 // change the month from 0-11 to 1-12
+      arrayTime[4] = +arrayTime[4] - 1 // change the month = require(0-11 to 1-12
       // Seconds: 0-59
       // Minutes: 0-59
       // Hours: 0-23

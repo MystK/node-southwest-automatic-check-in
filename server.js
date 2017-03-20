@@ -16,7 +16,7 @@ setInterval(() => {
   let restart = true
   jobs.forEach((job) => {
     const arrayTime = job.time.split(' ')
-    const jobDate = arrayTime[3]
+    const jobDate = +arrayTime[3]
     const todayDate = (new Date()).getDate()
 
     // don't restart the server if a check in is on the same day

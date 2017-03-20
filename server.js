@@ -39,6 +39,10 @@ router
       confirmationNumber: 'BX6BEB',
       time: '35 21 16 12',
       timeComment: '/*Minute*/ /*Hour in 24 hour format*/ /*Flight Day*/ /*Flight Month*/',
+      phoneNumber: '4086739283',
+      phoneNumberComment: 'Phone number is optional and has to be exactly like above!',
+      emailAddress: 'yourEmail@example.com',
+      emailAddressComment: 'Email address is optional',
     }
     ctx.body = body
   })

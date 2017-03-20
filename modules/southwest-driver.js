@@ -51,7 +51,11 @@ const SWRequest = options => new Promise((resolve, reject) => (async () => {
 const southwestCheckIn = async (inputOptions) => {
   const submitFormOptions = {
     url: 'https://www.southwest.com/flight/retrieveCheckinDoc.html',
-    form: inputOptions,
+    form: {
+      firstName: inputOptions.firstName,
+      lastName: inputOptions.lastName,
+      confirmationNumber: inputOptions.confirmationNumber,
+    },
   }
   const submitForm = await (async function recursiveRetry(retryCount = 0) {
     try {
@@ -94,31 +98,37 @@ const southwestCheckIn = async (inputOptions) => {
         Cookie: submitForm.cookie,
       },
     })
-    // const sendToPhoneOptions = SWRequest({
-    //   url: 'https://www.southwest.com/flight/selectCheckinDocDelivery.html',
-    //   form: {
-    //     selectedOption: 'optionText',
-    //     phoneArea: '408',
-    //     phonePrefix: '391',
-    //     phoneNumber: '3799',
-    //     book_now: ''
-    //   },
-    //   headers: {
-    //     Cookie: checkIn.cookie
-    //   }
-    // })
+    // send text
+    if (inputOptions.phoneNumber) {
+      const { phoneNumber } = inputOptions
+      SWRequest({
+        url: 'https://www.southwest.com/flight/selectCheckinDocDelivery.html',
+        form: {
+          selectedOption: 'optionText',
+          phoneArea: phoneNumber.slice(0, 3),
+          phonePrefix: phoneNumber.slice(3, 6),
+          phoneNumber: phoneNumber.slice(-4),
+          book_now: '',
+        },
+        headers: {
+          Cookie: checkIn.cookie,
+        },
+      })
+    }
     // send email
-    await SWRequest({
-      url: 'https://www.southwest.com/flight/selectCheckinDocDelivery.html',
-      form: {
-        selectedOption: 'optionEmail',
-        emailAddress: 'its@phamap.net',
-        book_now: '',
-      },
-      headers: {
-        Cookie: submitForm.cookie,
-      },
-    })
+    if (inputOptions.emailAddress) {
+      SWRequest({
+        url: 'https://www.southwest.com/flight/selectCheckinDocDelivery.html',
+        form: {
+          selectedOption: 'optionEmail',
+          emailAddress: inputOptions.emailAddress,
+          book_now: '',
+        },
+        headers: {
+          Cookie: submitForm.cookie,
+        },
+      })
+    }
     const response = checkIn.body
     return response
   } catch (err) {

@@ -1,4 +1,3 @@
-require("babel-polyfill");
 const Koa = require('koa')
 const koaRouter = require('koa-router')
 const request = require('request')
@@ -114,5 +113,4 @@ router
 
 server
   .use(router.routes())
-
-module.exports = server
+  .listen(8000, () => console.log('listening to port 8000'))

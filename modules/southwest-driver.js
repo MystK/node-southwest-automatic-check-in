@@ -27,7 +27,7 @@ const SWRequest = options => new Promise((resolve, reject) => (async () => {
   const postCookie = parseSetCookie(postRes.headers['set-cookie'])
   if (postRes.statusCode === 302) {
     const redirect = await new Promise((resolve2, reject2) => {
-      const [url] = postRes.headers.location
+      const url = postRes.headers.location
       request.get(_.assign(dRO, {
         url,
         headers: {

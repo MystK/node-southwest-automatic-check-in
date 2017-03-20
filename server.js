@@ -1,13 +1,59 @@
 const Koa = require('koa')
 const koaRouter = require('koa-router')
 const _ = require('lodash')
-const { CronJob } = require('cron')
+const CronJob = require('cron').CronJob
 const bodyParser = require('koa-bodyparser')
+const fsp = require('fs-promise')
 const southwestCheckIn = require('./modules/southwest-driver')
 
 const jobs = []
+const jobsCron = []
 const server = new Koa()
 const router = koaRouter()
+
+// restart every hour so the time is in sync with the system, which should be correct
+setInterval(() => {
+  let restart = true
+  jobs.forEach((job) => {
+    const arrayTime = job.time.split(' ')
+    const jobDate = arrayTime[3]
+    const todayDate = (new Date()).getDate()
+
+    // don't restart the server if a check in is on the same day
+    if (jobDate === todayDate) restart = false
+  })
+  if (restart) process.exit(1) // exit code 1 to make it look like a crash
+}, 1000 * 60 * 60)
+
+const addJob = (params) => {
+  jobs.push(Object.assign({ status: 'Waiting until time' }, params))
+  jobsCron.push({
+    params,
+    CronJob: new CronJob({
+      cronTime: params.time,
+      onTick: async () => {
+        jobsCron[params.id].CronJob.stop()
+        jobs[params.id].status = 'Done'
+        await fsp.writeJson('./state.json', jobs)
+        console.log('Trying to check in!')
+        await southwestCheckIn(params.params)
+        console.log(`Check in script was ran for ${JSON.stringify(params.params)}`)
+      },
+      start: true,
+    }),
+  })
+  return params.id
+}
+
+// load the state
+(async () => {
+  try {
+    const state = await fsp.readJson('./state.json')
+    state.forEach(job => addJob(job))
+  } catch (err) {
+    // this is an expected error
+  }
+})()
 
 server
   .use(bodyParser())
@@ -31,7 +77,9 @@ router
   .get('/listAll', (ctx) => {
     const body = {}
     jobs.forEach((job, index) => {
-      body[index] = job.params || job
+      body[index] = job.params
+      body[index].time = job.time
+      body[index].status = job.status
     })
     body.exampleJson = {
       firstName: 'Michelle',
@@ -44,13 +92,14 @@ router
       emailAddress: 'yourEmail@example.com',
       emailAddressComment: 'Email address is optional',
     }
+    body.currentTime = Date()
     ctx.body = body
   })
   .post('/flight', async (ctx, next) => {
     await next()
     ctx.body = ctx.request
   })
-  .put('/add', async (ctx) => {
+  .put('/add', async (ctx, next) => {
     try {
       const body = ctx.request.body
       let time = `50 ${body.time} *`
@@ -81,24 +130,10 @@ router
         params: body,
         id: jobs.length,
       }
-      jobs.push({
-        params,
-        CronJob: new CronJob({
-          cronTime: time,
-          onTick: async () => {
-            console.log('Trying to check in!')
-            await southwestCheckIn(body)
-            console.log(time)
-            console.log(body)
-            console.log('Looks like check in script was ran')
-          },
-          start: true,
-          onComplete: () => {
-            console.log('stopped')
-          },
-        }),
-      })
+      addJob(params)
+      await fsp.writeJson('./state.json', jobs)
       ctx.body = _.assign({}, params, { info: 'Successful!' })
+      await next()
     } catch (err) {
       ctx.body = err
     }
@@ -107,7 +142,7 @@ router
     const body = ctx.request.body
     const index = body.index
     const job = jobs[index]
-    if ('CronJob' in job) job.CronJob.stop()
+    if ('CronJob' in job) jobsCron.CronJob.stop()
     jobs[index] = 'Removed'
     ctx.body = `checkin #${index} removed`
   })

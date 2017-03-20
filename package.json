@@ -2,10 +2,10 @@
   "name": "node-southwest-automatic-check-in",
   "version": "1.0.0",
   "description": "This node module allows someone to auto check in by just entering their credentials in a query parameter via RESTful API.",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon server",
+    "start": "nodemon -i state.json",
     "startProduction": "forever cleanlogs && forever -o out.log -e err.log --uid production server.js",
     "stop": "forever stop production"
   },
@@ -20,9 +20,9 @@
   },
   "homepage": "https://github.com/MystK/node-southwest-automatic-check-in#readme",
   "dependencies": {
-    "cron": "^1.1.0",
+    "cron": "^1.2.1",
     "forever": "^0.15.3",
-    "kcors": "^1.0.1",
+    "fs-promise": "^2.0.0",
     "koa": "^2.0.0-alpha.3",
     "koa-bodyparser": "^3.0.0",
     "koa-router": "^7.0.0",

@@ -4,7 +4,7 @@
   "description": "This node module allows someone to auto check in by just entering their credentials in a query parameter via RESTful API.",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "echo \"Error: no test specified\" && exit 0",
     "start": "nodemon -i state.json",
     "startProduction": "forever cleanlogs && forever -o out.log -e err.log --uid production server.js",
     "stop": "forever stop production"

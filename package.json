@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 0",
     "start": "nodemon -i state.json",
-    "startProduction": "forever cleanlogs && forever -o out.log -e err.log --uid production server.js",
+    "startProduction": "forever cleanlogs && forever -l forever.log -o out.log -e err.log --uid production server.js",
     "stop": "forever stop production"
   },
   "repository": {

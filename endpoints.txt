@@ -1,0 +1,11 @@
+1. https://www.southwest.com/flight/retrieveCheckinDoc.html
+confirmationNumber=HKCSQF&firstName=ANTOINE&lastName=DANG&submitButton=Check+In
+
+2. https://www.southwest.com/flight/selectPrintDocument.html
+checkinPassengers%5B0%5D.selected=true&printDocuments=Check+In
+
+Send via phone: https://www.southwest.com/flight/selectCheckinDocDelivery.html
+selectedOption=optionText&phoneArea=408&phonePrefix=123&phoneNumber=3799&book_now=
+
+Send via email: https://www.southwest.com/flight/selectCheckinDocDelivery.html
+selectedOption=optionEmail&emailAddress=example%example.net&book_now=
